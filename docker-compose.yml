@@ -2,12 +2,12 @@ version: "3.9"
 services:
   postgres:
     image: postgres:16-alpine
-    container_name: billsplitter-db
+    container_name: littysplitty-db
     restart: unless-stopped
     environment:
-      POSTGRES_DB: billsplitter
-      POSTGRES_USER: billsplitter
-      POSTGRES_PASSWORD: billsplitter_dev
+      POSTGRES_DB: littysplitty
+      POSTGRES_USER: littysplitty
+      POSTGRES_PASSWORD: littysplitty_dev
     ports:
       - "5432:5432"
     volumes:
