@@ -1,0 +1,10 @@
+node_modules/
+dist/
+*.tsbuildinfo
+.env
+.claude/
+.pids/
+logs/
+*.log
+.DS_Store
+uploads/
