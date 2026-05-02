@@ -19,6 +19,7 @@ export function useCreateRule() {
       qc.invalidateQueries({ queryKey: ['rules'] });
       qc.invalidateQueries({ queryKey: ['transactions'] });
       qc.invalidateQueries({ queryKey: ['stats'] });
+      qc.invalidateQueries({ queryKey: ['tax'] });
     },
   });
 }
@@ -48,6 +49,7 @@ export function useApplyRule() {
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['transactions'] });
       qc.invalidateQueries({ queryKey: ['stats'] });
+      qc.invalidateQueries({ queryKey: ['tax'] });
     },
   });
 }

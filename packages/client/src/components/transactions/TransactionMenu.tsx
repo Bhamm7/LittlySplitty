@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import * as DropdownMenu from '@radix-ui/react-dropdown-menu';
-import { MoreHorizontal, FolderOpen, Tag, EyeOff, Wand2 } from 'lucide-react';
+import { MoreHorizontal, FolderOpen, Tag, EyeOff, Wand2, ArrowRightLeft } from 'lucide-react';
 import type { Transaction, Category, Tag as TagType } from '@littysplitty/shared';
 import { useUpdateTransaction } from '../../hooks/useTransactions.js';
 import RuleCreateDialog from './RuleCreateDialog.js';
@@ -18,6 +18,7 @@ export default function TransactionMenu({ transaction, categories, tags }: Props
     categoryId?: string;
     tagId?: string;
     isIgnored?: boolean;
+    isTransfer?: boolean;
   }>({ open: false });
 
   return (
@@ -108,6 +109,14 @@ export default function TransactionMenu({ transaction, categories, tags }: Props
               {transaction.is_ignored ? 'Unignore' : 'Ignore'}
             </DropdownMenu.Item>
 
+            <DropdownMenu.Item
+              className="flex items-center gap-2 px-3 py-2 text-sm text-gray-700 hover:bg-gray-50 cursor-pointer outline-none"
+              onSelect={() => updateTx.mutate({ id: transaction.id, changes: { is_transfer: !transaction.is_transfer } })}
+            >
+              <ArrowRightLeft className="w-4 h-4" />
+              {transaction.is_transfer ? 'Unmark Transfer' : 'Mark as Transfer'}
+            </DropdownMenu.Item>
+
             <DropdownMenu.Separator className="h-px bg-gray-200 my-1" />
 
             {/* Create Rule */}
@@ -117,6 +126,7 @@ export default function TransactionMenu({ transaction, categories, tags }: Props
                 open: true,
                 categoryId: transaction.category_id || undefined,
                 tagId: transaction.tag_id || undefined,
+                isTransfer: transaction.is_transfer || undefined,
               })}
             >
               <Wand2 className="w-4 h-4" />
@@ -132,7 +142,7 @@ export default function TransactionMenu({ transaction, categories, tags }: Props
         transaction={transaction}
         categories={categories}
         tags={tags}
-        prefill={{ categoryId: ruleDialog.categoryId, tagId: ruleDialog.tagId, isIgnored: ruleDialog.isIgnored }}
+        prefill={{ categoryId: ruleDialog.categoryId, tagId: ruleDialog.tagId, isIgnored: ruleDialog.isIgnored, isTransfer: ruleDialog.isTransfer }}
       />
     </>
   );

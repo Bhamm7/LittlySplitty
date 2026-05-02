@@ -52,6 +52,8 @@ export interface Transaction {
   user_id: string;
   import_id: string | null;
   bank_source_id: string;
+  bank_source_name?: string | null;
+  bank_source_parser_key?: string | null;
   plaid_transaction_id?: string | null;
   plaid_item_id?: string | null;
   transaction_date: string;
@@ -59,6 +61,7 @@ export interface Transaction {
   raw_description: string | null;
   amount: number;
   is_credit: boolean;
+  is_transfer: boolean;
   category_id: string | null;
   category_name?: string | null;
   category_color?: string | null;
@@ -84,6 +87,7 @@ export interface Rule {
   tag_id: string | null;
   tag_name?: string | null;
   is_ignored: boolean;
+  is_transfer: boolean;
   priority: number;
   is_active: boolean;
   created_at: string;
@@ -115,6 +119,8 @@ export interface TransactionFilters {
   category_id?: string;
   tag_id?: string;
   is_ignored?: boolean;
+  is_transfer?: boolean;
+  mode?: 'spending' | 'income';
   date_from?: string;
   date_to?: string;
   search?: string;
@@ -157,6 +163,7 @@ export interface CreateRuleRequest {
   category_id?: string;
   tag_id?: string;
   is_ignored?: boolean;
+  is_transfer?: boolean;
   priority?: number;
   apply_retroactively?: boolean;
 }
@@ -165,6 +172,7 @@ export interface UpdateTransactionRequest {
   category_id?: string | null;
   tag_id?: string | null;
   is_ignored?: boolean;
+  is_transfer?: boolean;
 }
 
 export interface BulkUpdateTransactionRequest {

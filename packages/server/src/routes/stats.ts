@@ -8,6 +8,8 @@ router.get('/summary', async (req: Request, res: Response, next: NextFunction) =
     const summary = await statsService.getSummary(
       req.query.date_from as string,
       req.query.date_to as string,
+      req.query.category_id as string | undefined,
+      req.query.tag_id as string | undefined,
       req.query.user_id as string | undefined,
       req.query.mode as string | undefined
     );
@@ -22,7 +24,8 @@ router.get('/monthly', async (req: Request, res: Response, next: NextFunction) =
       req.query.date_to as string,
       req.query.category_id as string,
       req.query.tag_id as string,
-      req.query.user_id as string | undefined
+      req.query.user_id as string | undefined,
+      req.query.mode as string | undefined
     );
     res.json(breakdown);
   } catch (err) { next(err); }

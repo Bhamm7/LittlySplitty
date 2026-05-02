@@ -20,8 +20,8 @@ export async function listRules(userId?: string) {
 
 export async function createRule(data: CreateRuleRequest) {
   const { rows } = await pool.query(
-    `INSERT INTO rules (user_id, name, match_field, match_pattern, match_type, category_id, tag_id, is_ignored, priority)
-     VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
+    `INSERT INTO rules (user_id, name, match_field, match_pattern, match_type, category_id, tag_id, is_ignored, is_transfer, priority)
+     VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
      RETURNING *`,
     [
       data.user_id || null,
@@ -32,6 +32,7 @@ export async function createRule(data: CreateRuleRequest) {
       data.category_id || null,
       data.tag_id || null,
       data.is_ignored || false,
+      data.is_transfer || false,
       data.priority || 0,
     ]
   );
@@ -58,6 +59,7 @@ export async function updateRule(id: string, data: Partial<CreateRuleRequest>) {
   if (data.category_id !== undefined)   { setClauses.push(`category_id = $${idx++}`);   params.push(data.category_id || null); }
   if (data.tag_id !== undefined)        { setClauses.push(`tag_id = $${idx++}`);        params.push(data.tag_id || null); }
   if (data.is_ignored !== undefined)    { setClauses.push(`is_ignored = $${idx++}`);    params.push(data.is_ignored); }
+  if (data.is_transfer !== undefined)   { setClauses.push(`is_transfer = $${idx++}`);   params.push(data.is_transfer); }
   if (data.priority !== undefined)      { setClauses.push(`priority = $${idx++}`);      params.push(data.priority); }
 
   if (setClauses.length === 0) throw new AppError(400, 'No changes provided');

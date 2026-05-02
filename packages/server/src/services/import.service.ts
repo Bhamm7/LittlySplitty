@@ -3,14 +3,15 @@ import { pool } from '../config/database.js';
 import { detectBankFormat, getParser, ParsedRow } from '../parsers/index.js';
 import { rulesEngine } from '../engine/rules-engine.js';
 import { AppError } from '../middleware/error-handler.js';
+import { extractTransactionsFromPdf } from './pdf-import.service.js';
 
 // In-memory cache for pending imports (file_hash -> parsed data)
 const importCache = new Map<string, { rows: ParsedRow[]; parserKey: string; bankName: string; filename: string; userId: string; expiresAt: number }>();
 
 // Credit-card-side payment entries (e.g. "PAYMENT - THANK YOU", "AUTOPAY PAYMENT")
-// are transfers from a debit account, not real income. Auto-ignore them so they
-// don't inflate stats — the matching debit-side withdrawal is the real cash flow.
-const CREDIT_CARD_PARSERS = new Set(['tangerine_csv', 'amex_csv', 'amex_xls']);
+// are transfers from a debit account, not real income. Mark them as transfers so
+// they remain visible without inflating income or expense totals.
+const CREDIT_CARD_PARSERS = new Set(['tangerine_csv', 'amex_csv', 'amex_xls', 'td_pdf_credit']);
 const PAYMENT_DESCRIPTION = /payment|thank\s*you|autopay/i;
 function isCreditCardPaymentTransfer(parserKey: string, row: ParsedRow): boolean {
   return (
@@ -41,9 +42,22 @@ export async function uploadAndPreview(buffer: Buffer, filename: string, userId:
   }
 
   // Detect and parse
-  const { parserKey, bankName } = detectBankFormat(buffer, filename);
-  const parser = getParser(parserKey);
-  const rows = parser.parse(buffer);
+  let parserKey: string;
+  let bankName: string;
+  let rows: ParsedRow[];
+
+  if (filename.toLowerCase().endsWith('.pdf')) {
+    const extracted = await extractTransactionsFromPdf(buffer, filename);
+    parserKey = extracted.parserKey;
+    bankName = extracted.bankName;
+    rows = extracted.rows;
+  } else {
+    const detected = detectBankFormat(buffer, filename);
+    parserKey = detected.parserKey;
+    bankName = detected.bankName;
+    const parser = getParser(detected.parserKey);
+    rows = parser.parse(buffer);
+  }
 
   if (rows.length === 0) {
     throw new AppError(400, 'No transactions found in file.');
@@ -121,8 +135,8 @@ export async function confirmImport(fileHash: string) {
     const transactionIds: string[] = [];
     for (const row of rows) {
       const { rows: txRows } = await client.query(
-        `INSERT INTO transactions (user_id, import_id, bank_source_id, transaction_date, description, raw_description, amount, is_credit, memo, merchant_address, raw_data)
-         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
+        `INSERT INTO transactions (user_id, import_id, bank_source_id, transaction_date, description, raw_description, amount, is_credit, is_transfer, memo, merchant_address, raw_data)
+         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)
          RETURNING id`,
         [
           userId,
@@ -133,6 +147,7 @@ export async function confirmImport(fileHash: string) {
           row.raw_description,
           row.amount,
           row.is_credit,
+          isCreditCardPaymentTransfer(parserKey, row),
           row.memo,
           row.merchant_address,
           JSON.stringify(row.raw_data),

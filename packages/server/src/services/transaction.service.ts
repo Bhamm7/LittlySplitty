@@ -8,6 +8,8 @@ export async function listTransactions(filters: TransactionFilters) {
     category_id,
     tag_id,
     is_ignored,
+    is_transfer,
+    mode,
     date_from,
     date_to,
     search,
@@ -37,6 +39,17 @@ export async function listTransactions(filters: TransactionFilters) {
     conditions.push(`t.is_ignored = $${paramIdx++}`);
     params.push(is_ignored);
   }
+  if (is_transfer !== undefined) {
+    conditions.push(`t.is_transfer = $${paramIdx++}`);
+    params.push(is_transfer);
+  }
+  if (mode === 'income') {
+    conditions.push('t.is_credit = true');
+    conditions.push('t.is_transfer = false');
+  } else if (mode === 'spending') {
+    conditions.push('NOT t.is_credit');
+    conditions.push('t.is_transfer = false');
+  }
   if (date_from) {
     conditions.push(`t.transaction_date >= $${paramIdx++}`);
     params.push(date_from);
@@ -62,9 +75,11 @@ export async function listTransactions(filters: TransactionFilters) {
   const countQuery = `SELECT COUNT(*) FROM transactions t ${whereClause}`;
   const dataQuery = `
     SELECT t.*,
+           bs.name as bank_source_name, bs.parser_key as bank_source_parser_key,
            c.name as category_name, c.color as category_color,
            tg.name as tag_name, tg.color as tag_color
     FROM transactions t
+    JOIN bank_sources bs ON t.bank_source_id = bs.id
     LEFT JOIN categories c ON t.category_id = c.id
     LEFT JOIN tags tg ON t.tag_id = tg.id
     ${whereClause}
@@ -91,9 +106,11 @@ export async function listTransactions(filters: TransactionFilters) {
 
 export async function getTransaction(id: string) {
   const { rows } = await pool.query(
-    `SELECT t.*, c.name as category_name, c.color as category_color,
+    `SELECT t.*, bs.name as bank_source_name, bs.parser_key as bank_source_parser_key,
+            c.name as category_name, c.color as category_color,
             tg.name as tag_name, tg.color as tag_color
      FROM transactions t
+     JOIN bank_sources bs ON t.bank_source_id = bs.id
      LEFT JOIN categories c ON t.category_id = c.id
      LEFT JOIN tags tg ON t.tag_id = tg.id
      WHERE t.id = $1`,
@@ -103,7 +120,7 @@ export async function getTransaction(id: string) {
   return rows[0];
 }
 
-export async function updateTransaction(id: string, changes: { category_id?: string | null; tag_id?: string | null; is_ignored?: boolean }) {
+export async function updateTransaction(id: string, changes: { category_id?: string | null; tag_id?: string | null; is_ignored?: boolean; is_transfer?: boolean }) {
   const setClauses: string[] = [];
   const params: unknown[] = [];
   let idx = 1;
@@ -119,6 +136,10 @@ export async function updateTransaction(id: string, changes: { category_id?: str
   if (changes.is_ignored !== undefined) {
     setClauses.push(`is_ignored = $${idx++}`);
     params.push(changes.is_ignored);
+  }
+  if (changes.is_transfer !== undefined) {
+    setClauses.push(`is_transfer = $${idx++}`);
+    params.push(changes.is_transfer);
   }
 
   if (setClauses.length === 0) throw new AppError(400, 'No changes provided');
@@ -134,7 +155,7 @@ export async function updateTransaction(id: string, changes: { category_id?: str
   return rows[0];
 }
 
-export async function bulkUpdateTransactions(ids: string[], changes: { category_id?: string | null; tag_id?: string | null; is_ignored?: boolean }) {
+export async function bulkUpdateTransactions(ids: string[], changes: { category_id?: string | null; tag_id?: string | null; is_ignored?: boolean; is_transfer?: boolean }) {
   const setClauses: string[] = [];
   const params: unknown[] = [];
   let idx = 1;
@@ -150,6 +171,10 @@ export async function bulkUpdateTransactions(ids: string[], changes: { category_
   if (changes.is_ignored !== undefined) {
     setClauses.push(`is_ignored = $${idx++}`);
     params.push(changes.is_ignored);
+  }
+  if (changes.is_transfer !== undefined) {
+    setClauses.push(`is_transfer = $${idx++}`);
+    params.push(changes.is_transfer);
   }
 
   if (setClauses.length === 0) throw new AppError(400, 'No changes provided');

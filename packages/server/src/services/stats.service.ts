@@ -1,12 +1,21 @@
 import { pool } from '../config/database.js';
 
-export async function getSummary(dateFrom?: string, dateTo?: string, userId?: string, mode?: string) {
-  const conditions: string[] = ['t.is_ignored = false'];
+export async function getSummary(
+  dateFrom?: string,
+  dateTo?: string,
+  categoryId?: string,
+  tagId?: string,
+  userId?: string,
+  mode?: string
+) {
+  const conditions: string[] = ['t.is_ignored = false', 't.is_transfer = false'];
   const params: unknown[] = [];
   let idx = 1;
 
   if (dateFrom) { conditions.push(`t.transaction_date >= $${idx++}`); params.push(dateFrom); }
   if (dateTo) { conditions.push(`t.transaction_date <= $${idx++}`); params.push(dateTo); }
+  if (categoryId) { conditions.push(`t.category_id = $${idx++}`); params.push(categoryId); }
+  if (tagId) { conditions.push(`t.tag_id = $${idx++}`); params.push(tagId); }
   if (userId) { conditions.push(`t.user_id = $${idx++}`); params.push(userId); }
 
   const whereClause = conditions.length > 0 ? `WHERE ${conditions.join(' AND ')}` : '';
@@ -72,8 +81,15 @@ export async function getSummary(dateFrom?: string, dateTo?: string, userId?: st
   };
 }
 
-export async function getMonthlyBreakdown(dateFrom?: string, dateTo?: string, categoryId?: string, tagId?: string, userId?: string) {
-  const conditions: string[] = ['t.is_ignored = false'];
+export async function getMonthlyBreakdown(
+  dateFrom?: string,
+  dateTo?: string,
+  categoryId?: string,
+  tagId?: string,
+  userId?: string,
+  mode?: string
+) {
+  const conditions: string[] = ['t.is_ignored = false', 't.is_transfer = false'];
   const params: unknown[] = [];
   let idx = 1;
 
@@ -82,6 +98,11 @@ export async function getMonthlyBreakdown(dateFrom?: string, dateTo?: string, ca
   if (categoryId) { conditions.push(`t.category_id = $${idx++}`); params.push(categoryId); }
   if (tagId) { conditions.push(`t.tag_id = $${idx++}`); params.push(tagId); }
   if (userId) { conditions.push(`t.user_id = $${idx++}`); params.push(userId); }
+  if (mode === 'income') {
+    conditions.push('t.is_credit = true');
+  } else if (mode === 'spending') {
+    conditions.push('NOT t.is_credit');
+  }
 
   const whereClause = `WHERE ${conditions.join(' AND ')}`;
 
@@ -122,6 +143,7 @@ export async function getTaxReport(year: number, userId?: string) {
      JOIN categories c ON t.category_id = c.id
      WHERE c.is_business = true
        AND t.is_ignored = false
+       AND t.is_transfer = false
        AND t.transaction_date >= $1
        AND t.transaction_date <= $2
        ${userClause}

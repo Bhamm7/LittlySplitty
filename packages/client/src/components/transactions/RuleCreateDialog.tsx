@@ -14,6 +14,7 @@ interface Props {
     categoryId?: string;
     tagId?: string;
     isIgnored?: boolean;
+    isTransfer?: boolean;
   };
 }
 
@@ -23,10 +24,11 @@ export default function RuleCreateDialog({ open, onClose, transaction, categorie
   const [categoryId, setCategoryId] = useState(prefill.categoryId || '');
   const [tagId, setTagId] = useState(prefill.tagId || '');
   const [isIgnored, setIsIgnored] = useState(prefill.isIgnored || false);
+  const [isTransfer, setIsTransfer] = useState(prefill.isTransfer || false);
   const [applyRetroactively, setApplyRetroactively] = useState(true);
   const createRule = useCreateRule();
 
-  const hasAction = categoryId || tagId || isIgnored;
+  const hasAction = categoryId || tagId || isIgnored || isTransfer;
 
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -40,6 +42,7 @@ export default function RuleCreateDialog({ open, onClose, transaction, categorie
         category_id: categoryId || undefined,
         tag_id: tagId || undefined,
         is_ignored: isIgnored || undefined,
+        is_transfer: isTransfer || undefined,
         apply_retroactively: applyRetroactively,
       },
       { onSuccess: () => onClose() }
@@ -128,6 +131,16 @@ export default function RuleCreateDialog({ open, onClose, transaction, categorie
                   className="rounded"
                 />
                 Ignore matching transactions
+              </label>
+
+              <label className="flex items-center gap-2 text-sm cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={isTransfer}
+                  onChange={(e) => setIsTransfer(e.target.checked)}
+                  className="rounded"
+                />
+                Mark matching transactions as transfers
               </label>
             </div>
 

@@ -10,16 +10,17 @@ export const upload = multer({
       'text/csv',
       'application/vnd.ms-excel',
       'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+      'application/pdf',
       'application/octet-stream',
     ];
     // Also check extension
     const ext = file.originalname.toLowerCase();
-    if (ext.endsWith('.csv') || ext.endsWith('.xls') || ext.endsWith('.xlsx')) {
+    if (ext.endsWith('.csv') || ext.endsWith('.xls') || ext.endsWith('.xlsx') || ext.endsWith('.pdf')) {
       cb(null, true);
     } else if (allowedTypes.includes(file.mimetype)) {
       cb(null, true);
     } else {
-      cb(new Error('Only CSV and Excel files are allowed'));
+      cb(new Error('Only CSV, Excel, and PDF files are allowed'));
     }
   },
 });

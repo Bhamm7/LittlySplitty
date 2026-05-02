@@ -10,6 +10,8 @@ export const env = {
   PORT: parseInt(process.env.PORT || '3001', 10),
   CLIENT_URL: process.env.CLIENT_URL || 'http://localhost:5173',
   CLIENT_URL_LAN: process.env.CLIENT_URL_LAN || 'http://192.168.1.101:5173',
+  OPENAI_API_KEY: process.env.OPENAI_API_KEY || '',
+  OPENAI_PDF_MODEL: process.env.OPENAI_PDF_MODEL || 'gpt-5.4-mini',
   PLAID_CLIENT_ID: process.env.PLAID_CLIENT_ID || '',
   PLAID_SECRET: process.env.PLAID_SECRET || '',
   PLAID_ENV: process.env.PLAID_ENV || 'sandbox',

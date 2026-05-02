@@ -13,7 +13,10 @@ export type ParserKey =
   | 'tangerine_csv'
   | 'tangerine_debit_csv'
   | 'amex_csv'
-  | 'amex_xls';
+  | 'amex_xls'
+  | 'td_pdf_chequing'
+  | 'td_pdf_savings'
+  | 'td_pdf_credit';
 
 interface DetectionResult {
   parserKey: ParserKey;
@@ -69,6 +72,10 @@ export function getParser(parserKey: ParserKey): BaseParser {
       return new AmexCsvParser();
     case 'amex_xls':
       return new AmexParser();
+    case 'td_pdf_chequing':
+    case 'td_pdf_savings':
+    case 'td_pdf_credit':
+      throw new AppError(400, `PDF parser ${parserKey} must be handled by the PDF import service`);
     default:
       throw new AppError(400, `Unknown parser: ${parserKey}`);
   }

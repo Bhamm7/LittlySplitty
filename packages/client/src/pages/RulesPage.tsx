@@ -28,7 +28,7 @@ export default function RulesPage() {
   const [showAdd, setShowAdd] = useState(false);
   const [form, setForm] = useState<CreateRuleRequest>(EMPTY_FORM);
 
-  const hasAction = form.category_id || form.tag_id || form.is_ignored;
+  const hasAction = form.category_id || form.tag_id || form.is_ignored || form.is_transfer;
 
   function handleAdd(e: React.FormEvent) {
     e.preventDefault();
@@ -46,6 +46,7 @@ export default function RulesPage() {
     if (rule.category_name) parts.push(`Category: ${rule.category_name}`);
     if (rule.tag_name)      parts.push(`Tag: ${rule.tag_name}`);
     if (rule.is_ignored)    parts.push('Ignore');
+    if (rule.is_transfer)   parts.push('Transfer');
     return parts.length ? parts.join(' · ') : '—';
   }
 
@@ -133,6 +134,15 @@ export default function RulesPage() {
               />
               Ignore matching transactions
             </label>
+            <label className="flex items-center gap-2 text-sm cursor-pointer">
+              <input
+                type="checkbox"
+                checked={form.is_transfer || false}
+                onChange={(e) => setForm({ ...form, is_transfer: e.target.checked })}
+                className="rounded"
+              />
+              Mark matching transactions as transfers
+            </label>
           </div>
 
           <label className="flex items-center gap-2 text-sm">
@@ -198,7 +208,10 @@ export default function RulesPage() {
                       {rule.is_ignored && (
                         <span className="px-2 py-0.5 rounded-full text-xs bg-gray-100 text-gray-500">Ignore</span>
                       )}
-                      {!rule.category_name && !rule.tag_name && !rule.is_ignored && (
+                      {rule.is_transfer && (
+                        <span className="px-2 py-0.5 rounded-full text-xs bg-sky-100 text-sky-700">Transfer</span>
+                      )}
+                      {!rule.category_name && !rule.tag_name && !rule.is_ignored && !rule.is_transfer && (
                         <span className="text-gray-400">—</span>
                       )}
                     </div>

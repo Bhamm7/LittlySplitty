@@ -10,6 +10,8 @@ router.get('/', async (req: Request, res: Response, next: NextFunction) => {
       category_id: req.query.category_id as string | undefined,
       tag_id: req.query.tag_id as string | undefined,
       is_ignored: req.query.is_ignored !== undefined ? req.query.is_ignored === 'true' : undefined,
+      is_transfer: req.query.is_transfer !== undefined ? req.query.is_transfer === 'true' : undefined,
+      mode: req.query.mode as 'spending' | 'income' | undefined,
       date_from: req.query.date_from as string | undefined,
       date_to: req.query.date_to as string | undefined,
       search: req.query.search as string | undefined,

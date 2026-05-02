@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
 import { useDropzone } from 'react-dropzone';
-import { Upload, CheckCircle, AlertCircle, FileSpreadsheet, Loader2, X } from 'lucide-react';
+import { Upload, CheckCircle, AlertCircle, FileSpreadsheet, FileText, Loader2, X } from 'lucide-react';
 import { uploadFile, confirmImport } from '../api/imports.js';
 import type { ImportPreview } from '@littysplitty/shared';
 import UserSelector from '../components/UserSelector.js';
@@ -32,6 +32,7 @@ export default function ImportPage() {
       'text/csv': ['.csv'],
       'application/vnd.ms-excel': ['.xls'],
       'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet': ['.xlsx'],
+      'application/pdf': ['.pdf'],
     },
     onDrop: async (files) => {
       if (files.length === 0) return;
@@ -156,7 +157,7 @@ export default function ImportPage() {
           {isDragActive ? 'Drop files here...' : 'Drag & drop bank statements, or click to select'}
         </p>
         <p className="text-sm text-gray-400 mt-2">
-          CSV (Tangerine credit/debit, Amex) · XLS/XLSX (Amex) · Drop multiple files to batch import
+          CSV (Tangerine credit/debit, Amex) · XLS/XLSX (Amex) · PDF (TD chequing, savings, credit) · Drop multiple files to batch import
         </p>
       </div>
 
@@ -178,7 +179,11 @@ export default function ImportPage() {
         <div className="mt-6 bg-white rounded-xl border border-gray-200 overflow-hidden">
           <div className="px-6 py-4 border-b border-gray-200 bg-gray-50">
             <div className="flex items-center gap-3">
-              <FileSpreadsheet className="w-5 h-5 text-blue-600" />
+              {preview.parser_key.includes('pdf') ? (
+                <FileText className="w-5 h-5 text-amber-600" />
+              ) : (
+                <FileSpreadsheet className="w-5 h-5 text-blue-600" />
+              )}
               <div>
                 <p className="font-semibold">{preview.bank_source}</p>
                 <p className="text-sm text-gray-500">

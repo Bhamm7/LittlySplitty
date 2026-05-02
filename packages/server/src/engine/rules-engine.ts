@@ -9,7 +9,7 @@ export class RulesEngine {
   async applyRules(transactionIds?: string[], userId?: string): Promise<{ applied: number }> {
     const client = await pool.connect();
     try {
-      let ruleQuery = `SELECT id, match_field, match_pattern, match_type, category_id, tag_id, is_ignored
+      let ruleQuery = `SELECT id, match_field, match_pattern, match_type, category_id, tag_id, is_ignored, is_transfer
          FROM rules WHERE is_active = true`;
       const ruleParams: unknown[] = [];
       if (userId) {
@@ -40,7 +40,7 @@ export class RulesEngine {
     const client = await pool.connect();
     try {
       const { rows } = await client.query(
-        `SELECT match_field, match_pattern, match_type, category_id, tag_id, is_ignored, user_id
+        `SELECT match_field, match_pattern, match_type, category_id, tag_id, is_ignored, is_transfer, user_id
          FROM rules WHERE id = $1 AND is_active = true`,
         [ruleId]
       );
@@ -57,7 +57,7 @@ export class RulesEngine {
 
   private async _applyRuleRow(
     client: PoolClient,
-    rule: { match_field: string; match_pattern: string; match_type: string; category_id: string | null; tag_id: string | null; is_ignored: boolean },
+    rule: { match_field: string; match_pattern: string; match_type: string; category_id: string | null; tag_id: string | null; is_ignored: boolean; is_transfer: boolean },
     transactionIds?: string[],
     userId?: string
   ): Promise<number> {
@@ -75,6 +75,9 @@ export class RulesEngine {
     }
     if (rule.is_ignored) {
       setClauses.push('is_ignored = true');
+    }
+    if (rule.is_transfer) {
+      setClauses.push('is_transfer = true');
     }
 
     if (setClauses.length === 0) return 0;
